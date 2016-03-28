@@ -12,10 +12,9 @@ class GetData():
     def __init__(self):
         self.Responese = urllib.request.urlopen('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php')
         self.soup = BeautifulSoup(self.Responese,"html.parser")
-        print("2323")
-        for x in range(self.soup.select('.basic2').__len__()):
-            if x > 5 and ((x%5)!=2):
-                print(self.soup.select('.basic2')[x].text)
+        for x in range(6,self.soup.select('.basic2').__len__(),1):
+           # if x > 5 and ((x%5)!=2):
+            print(self.soup.select('.basic2')[x].text)
     #def GripData(self):
         
 a = GetData()
