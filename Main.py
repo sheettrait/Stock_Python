@@ -6,12 +6,13 @@ import requests
 import sys
 import urllib.request
 import tkinter
+
 from bs4 import BeautifulSoup
 from yahoo_finance import Share
 import urllib
 from pip._vendor.distlib.compat import raw_input
 from tkinter import Label, Entry
-
+from tkinter.constants import INSERT, DISABLED
 class GetData():
     def __init__(self):
         self.Responese = urllib.request.urlopen('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php')
@@ -23,7 +24,7 @@ class GetData():
         
     def SearchPERatio(self):
         for x in range(8,203,5):
-        #for x in range(8,self.soup.select('.basic2').__len__(),5):
+       # for x in range(8,self.soup.select('.basic2').__len__(),5):
             if self.soup.select('.basic2')[x].text != '-':
                 if float(self.soup.select('.basic2')[x].text) <=float(self.TargetPERatio) :
                     QueryPrice = Share(self.soup.select('.basic2')[x-2].text+'.TW') #Query the API
@@ -47,7 +48,8 @@ class GUI(GetData):
 ####################### initial interface #######################
         self.interface = tkinter.Tk()
         self.interface.title("HI")
-        self.guitext = tkinter.Text(self.interface,height=50,width=50)
+ #       self.newLabel=Label()
+   #     self.guitext = tkinter.Text(self.interface,height=2,width=3)
         self.inputPERatio = Label()
         self.inputPERatio["text"]="Input Ratio"
         self.inputPERatio.grid(row=0,column=0)
@@ -79,7 +81,9 @@ class GUI(GetData):
         print(self.AllData.__len__())
         for x in range(int(self.AllData.__len__()/4)):
             for y in range(0,4,1):
-                tkinter.Text(self.interface).grid(row=3+x,column=y)
+                #tkinter.Text(self.interface,text='hello').grid(row=3+x,column=y)
+               # self.guitext.insert(INSERT,"hello...").grid(row=3+x,column=y)
+               tkinter.Label(self.interface,text=self.AllData[4*x+y]).grid(row=3+x,column=y)
     #    for r in range(self.AllData.__len__()%4):
     #        for c in range(4):
     #            tkinter.Text(self.interface,height=1,width=1,borderwidth=1).grid(row=3+r,column=c)
