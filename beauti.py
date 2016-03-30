@@ -1,5 +1,4 @@
 # coding=utf-8
-
 import csv
 import io
 import urllib
@@ -9,23 +8,11 @@ import urllib.request
 from bs4 import BeautifulSoup
 import urllib
 import chardet
-r = urllib.request.urlopen('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php')
-#print(chardet.detect(r.read()))
-soup = BeautifulSoup(r, "html.parser")
-
-
-#print(soup.select('.basic2')[12].text.decode('unicode-escape'))
-print(soup.select('.basic2')[1].text)
-print(soup.select('.basic2')[2].text)
-print(soup.select('.basic2')[3].text)
-print(soup.select('.basic2')[4].text)
-print(soup.select('.basic2')[5].text)
-print(soup.select('.basic2')[6].text)
-print(soup.select('.basic2')[7].text)
-print(soup.select('.basic2')[8].text)
-print(soup.select('.basic2')[9].text)
-print(soup.select('.basic2')[10].text)
-print(soup.select('.basic2')[11].text)
-#for x in range(soup.select('.basic2').__len__()):
-#    if x%4 != 0:
-#        print(soup.select('.basic2')[x].text)
+from time import sleep
+url="http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date=20160330&end_date=20160329&report_type=day&language=ch&save=csv"
+#url="http://finance.yahoo.com/d/quotes.csv?s=^TWII&f=l1"
+while(True):
+    CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(url)))
+    for row in CSVReader:
+         print(row)
+        # sleep(2)

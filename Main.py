@@ -6,7 +6,7 @@ import requests
 import sys
 import urllib.request
 import tkinter
-
+import datetime
 from bs4 import BeautifulSoup
 from yahoo_finance import Share
 import urllib
@@ -21,7 +21,7 @@ class GetData():
         self.TargetEPS = 0      #raw_input("Please input the EPS")
         self.AllData=[]
         self.TrendThreeMen=[]
-        
+        self.HistoryData=[]
     def SearchPERatio(self):
         for x in range(8,203,5):
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
@@ -34,13 +34,58 @@ class GetData():
                         self.AllData.append(QueryPrice.get_open())                  # Get FinalPrice
                         self.AllData.append(self.soup.select('.basic2')[x].text)    # Get PERatio
                         self.AllData.append(QueryPrice.get_earnings_share())
-                   # elif QueryPrice.get_earnings_share()==None:
-                    #    print(self.soup.select('.basic2')[x-2].text)
-                    #    print("hi"+QueryPrice.get_earnings_share())
-                    #    self.AllData.append("None")
-                        
+
+    def YahooAPI(self,StockNumber):
+        TempURL = "http://finance.yahoo.com/d/quotes.csv?s="+StockNumber+".TW&f=gherl1n"
+    
+    def DayMoving(self,StockNumber):        #個股的平均線
+        PrehistoryURL = "http://real-chart.finance.yahoo.com/table.csv?s="+StockNumber+".TW"
+        CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(PrehistoryURL)))
+        self.HistoryData.append(StockNumber)
+        Day=0
+        MovingPrice=0
+        for row in CSVReader:            #Moving Days 
+            if row[6]=='Adj Close':
+                print(row)
+                continue
+            Day = Day+1
+            MovingPrice = float(row[6])+MovingPrice
+            if Day==5:
+                self.HistoryData.append(float(MovingPrice/5))
+            elif Day==15:
+                self.HistoryData.append(float(MovingPrice/15))
+            elif Day==30:
+                self.HistoryData.append(float(MovingPrice/30))
+                break
+        return self.HistoryData
+     
+    def ThreeMenDollar(self): #三大法人
+        Today = datetime.datetime.now().strftime("%Y%m%d")
+        url = "http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date="+Today+"&report_type=day&language=ch&save=csv" 
+        CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(url)))
+        for row in CSVReader:
+            print(row)
+    
+    def FeatureToday(self): #期貨
         
-        
+        TodayFeature={  #setting the post query data
+              'syear':datetime.datetime.now().strftime("%Y"),
+              'smonth':datetime.datetime.now().strftime("%m"),
+              'sday':datetime.datetime.now().strftime("%d"),
+              'eyear':datetime.datetime.now().strftime("%Y"),
+              'emonth':datetime.datetime.now().strftime("%m"),
+              'eday':datetime.datetime.now().strftime("%d"),
+        }
+
+        FeatureRequest= requests.post('http://www.taifex.com.tw/chinese/3/7_12_6dl.asp',data=TodayFeature,allow_redirects=False)
+        URLRedirect = "http://www.taifex.com.tw"+FeatureRequest.headers['Location']
+        RealCSVFile = requests.get(URLRedirect)
+        response = urllib.request.urlopen(RealCSVFile.url)
+        for row in csv.reader(io.TextIOWrapper(response)):
+    #for x in range(row.__len__()):
+            print(row)
+            
+            
 class GUI(GetData):
     
     def __init__(self):
@@ -65,6 +110,11 @@ class GUI(GetData):
         self.CheckButton = tkinter.Button(text="Enter")
         self.CheckButton.bind('<Button-1>',self.OutputData)
         self.CheckButton.grid(row=2)
+        self.Threemen = Label()
+        self.Threemen["text"] = "三大法人"
+        self.Threemen.grid(row=0,column=4)
+        self.ThreemenField = tkinter.Text()
+        self.ThreemenField.grid(row=1,column=4)
 ####################### initial interface #######################        
     #    self.guitext.grid()
         self.interface.mainloop()
@@ -89,6 +139,10 @@ class GUI(GetData):
     #            tkinter.Text(self.interface,height=1,width=1,borderwidth=1).grid(row=3+r,column=c)
 
 b = GUI()
+b.FeatureToday()
+b.ThreeMenDollar()
+#b.DayMoving("2891")
+#print(b.HistoryData)
 #b.getihi()
 #a = GetData()
 #a.SearchPERatio()
