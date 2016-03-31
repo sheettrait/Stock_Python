@@ -15,7 +15,6 @@ import urllib
 from pip._vendor.distlib.compat import raw_input
 from tkinter import Label, Entry
 from tkinter.constants import INSERT
-
 class GetData():
     def __init__(self):
         self.Responese = urllib.request.urlopen('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php')
