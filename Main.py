@@ -26,7 +26,7 @@ class GetData():
         self.HistoryData=[]
 #####################
     def SearchPERatio(self):
-        for x in range(8,203,5):
+        for x in range(8,503,5):
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
             if self.soup.select('.basic2')[x].text != '-':
                 if float(self.soup.select('.basic2')[x].text) <=float(self.TargetPERatio) :
