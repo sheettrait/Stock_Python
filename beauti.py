@@ -1,4 +1,4 @@
-# coding=utf-8
+# -- coding: utf-8 --
 import csv
 import io
 import urllib
@@ -7,6 +7,7 @@ import sys
 import urllib.request
 from bs4 import BeautifulSoup
 import urllib
+import codecs
 from time import sleep
 #url="http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date=20160330&end_date=20160329&report_type=day&language=ch&save=csv"
 #url="http://finance.yahoo.com/d/quotes.csv?s=^TWII&f=l1"
@@ -20,7 +21,40 @@ from time import sleep
 import requests
 import time
 import json
+TodayFeature={  #setting the post query data
+              'syear':'2016',
+              'smonth':'4',
+              'sday':'1',
+              'eyear':'2016',
+              'emonth':'4',
+              'eday':'1'
+         #       'DATA_DATE':'2016/4/1',
+         #       'DATA_DATE1':'2016/4/1',
+         #       'DATA_DATE_Y':'2016',
+         #       'DATA_DATE_M':'4',
+         #       'DATA_DATE_D':'1',
+         #       'DATA_DATE_Y1':'2016',
+         #       'DATA_DATE_M1':'4',
+         #       'DATA_DATE_D1':'1',
+         #       'syear':'2016',
+         #       'smonth':'4',
+         #       'sday':'1',
+         #       'eyear':'2016',
+         #       'emonth':'4',
+         #       'eday':'1',
+         #       'datestart':"2016/4/1",
+         #       'dateend':'2016/4/1'
+        }
+FeatureRequest= requests.post('http://www.taifex.com.tw/chinese/3/7_12_8dl.asp',data=TodayFeature,allow_redirects=False)
+print(FeatureRequest.headers['Location'])
+URLRedirect = "http://www.taifex.com.tw"+FeatureRequest.headers['Location']
+RealCSVFile = requests.get(URLRedirect)
+print(RealCSVFile.url)
 
+TodayFeatureResponse = urllib.request.urlopen(RealCSVFile.url)
+#for row in csv.reader(io.TextIOWrapper(TodayFeatureResponse)):
+for row in csv.reader(codecs.iterdecode(TodayFeatureResponse,"Latin-1")):
+    print(row)
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = =
