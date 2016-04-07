@@ -8,7 +8,11 @@ import urllib.request
 from bs4 import BeautifulSoup
 import urllib
 import codecs
+import time
+import json
+import base64
 from time import sleep
+from gunicorn.http.errors
 #url="http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date=20160330&end_date=20160329&report_type=day&language=ch&save=csv"
 #url="http://finance.yahoo.com/d/quotes.csv?s=^TWII&f=l1"
 #while(True):
@@ -16,11 +20,32 @@ from time import sleep
 #    for row in CSVReader:
 #         print(row)
 #         sleep(2)
+#LimitRequestLine
 
+first = requests.get('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php')
+first.encoding = 'big5'
+soup = BeautifulSoup(first.text,"html.parser")
 
-import requests
-import time
-import json
+a={}
+
+for hey in soup.select('input'):
+    if 'hidden' in hey.get('type'):
+        if hey.get('name') =='html':
+            print(hey.get('name'))
+       #print(hey.get('value'))
+            a[hey.get('name')] = base64.b64encode(hey.get('value').encode('utf-8'))
+        elif hey.get('name')=='dirname':
+            a[hey.get('name')] ='BWIBBU_d20160407'
+
+data=a
+print(data)
+res2 = requests.post('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_print.php?language=ch&save=csv',params=a,stream=True)
+TodayFeatureResponse = urllib.request.urlopen(res2.url)
+#for row in csv.reader(io.TextIOWrapper(TodayFeatureResponse)):
+for row in csv.reader(codecs.iterdecode(TodayFeatureResponse,"Latin-1")):
+    print(row)
+
+print("========================================================================")
 TodayFeature={  #setting the post query data
               'syear':'2016',
               'smonth':'4',

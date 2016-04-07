@@ -99,13 +99,12 @@ class GetData():
      
     def ThreeMenDollar(self): #三大法人
         
-        #Today = datetime.datetime.now().strftime("%Y%m%d")
-        Today="20160401"
+        Today = datetime.datetime.now().strftime("%Y%m%d")
+        print(Today)
         url = "http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date="+Today+"&report_type=day&language=ch&save=csv" 
-        self.ThreeMenResponse = urllib.request.urlopen(url)
-        CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(url)))
-      #  for row in CSVReader:
-      #      print(row)
+        self.ThreeMenDollarResponse = urllib.request.urlopen(url)
+      #  CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(url)))
+ 
     
     def FutureToday(self): #期貨 http://www.taifex.com.tw/chinese/3/7_12_8.asp
         
@@ -139,6 +138,8 @@ class GUI(GetData):
     def __init__(self):
         super().__init__()
 ####################### initial interface #######################
+        self.LabelName=['強關','成交','弱關']
+        self.BigThreeLabelName=['法人','自營商','投信','外資','三大法人']
         self.InTimeObject = InTimeData()
         self.InTimeObject.FutureInTime()
                
@@ -176,140 +177,83 @@ class GUI(GetData):
         self.CheckButton = tkinter.Button(text="Enter")
         self.CheckButton.bind('<Button-1>',self.OutputData)
         self.CheckButton.grid(row=4)
-        
-      #  self.Future = Label()
-      #  self.Future["text"] = "三大法人期貨"
-      #  self.Future.grid(row=0,column=4)
-      #  self.FutureField = tkinter.Text(height=10,width=80)
-      #  self.FutureField.grid(row=1,column=4)
-        
-        self.FutureBoxLabel=Label()
-        self.FutureBoxLabel["text"]="三大法人期貨口數"
-        self.FutureBoxLabel.grid(row=0,column=4)
-        self.FutureBox = tkinter.Listbox()
-        self.FutureBox.grid(row=1,column=4)
+  
+  #      self.FutureBox = tkinter.Listbox()
+  #      self.FutureBox.grid(row=12,column=12)
 #期貨未平倉口數Label設定
-        self.FutureNameTitle=Label()
-        self.FutureNameTitle["text"]="法人"
-        self.FutureNameTitle.grid(row=0,column=4)
+
+        for x in range(0,5,1):
+            self.InTimeFutureLabel = Label()  
+            self.InTimeFutureLabel["text"]=self.BigThreeLabelName[x]
+            self.InTimeFutureLabel.grid(row=x,column=4)
+
         self.FutureNameTitle=Label()
         self.FutureNameTitle["text"]="未平倉口數"
         self.FutureNameTitle.grid(row=0,column=5)
         self.FutureNameTitle=Label()
         self.FutureNameTitle["text"]="買賣超金額"
         self.FutureNameTitle.grid(row=0,column=6)
-                
-        self.FutureNameTitle=Label()
-        self.FutureNameTitle["text"]="自營"
-        self.FutureNameTitle.grid(row=1,column=4)
-        self.SelfCreateFuture=Label()
-        self.SelfCreateFuture["text"]="未平倉口數"
-        self.SelfCreateFuture.grid(row=1,column=5)
-        self.SelfCreateNet=Label()
-        self.SelfCreateNet["text"]="買賣超金額"
-        self.SelfCreateNet.grid(row=1,column=6)
 
-
-        self.FutureName=Label()
-        self.FutureName["text"]="投信"
-        self.FutureName.grid(row=2,column=4) 
-        self.ThrowTrustFuture=Label()
-        self.ThrowTrustFuture["text"]="未平倉口數"
-        self.ThrowTrustFuture.grid(row=2,column=5)
-        self.ThrowTrustNet=Label()
-        self.ThrowTrustNet["text"]="買賣超金額"
-        self.ThrowTrustNet.grid(row=2,column=6)
         
         self.FutureVar = StringVar()
         self.FutureToday()
-        self.PrintFeautre()   
-        
-        
-        self.FutureName=Label()
-        self.FutureName["text"]="外資"
-        self.FutureName.grid(row=3,column=4)       
-        self.ForeignFuture=Label()
-        self.ForeignFuture["text"]="未平倉口數"
-        self.ForeignFuture.grid(row=3,column=5)
+
         self.ForeignNet=Label(textvariable=self.FutureVar)
    #     self.ForeignNet["text"]=self.FutureVar
         self.ForeignNet.grid(row=3,column=6)
         
         
 #############################################################
-        self.Threemen = Label()
-        self.Threemen["text"] = "三大法人"
-        self.Threemen.grid(row=4,column=4)
+
         self.ThreemenBox=tkinter.Listbox()
-        self.ThreemenBox.grid(row=6,column=4)
-        
-     #   self.Threemen.grid(row=3,column=4)
-     #   self.ThreemenField = tkinter.Text(height=10,width=80)
-     #   self.ThreemenField.grid(row=6,column=4)
-        
-     #   self.InTimeFutureLabel = Label()
-     #   self.InTimeFutureLabel["text"]="台指現況"
-     #   self.InTimeFutureLabel.grid(row=0,column=8)
-        self.InTimeFutureLabelField = tkinter.Text()
- #       self.InTimeFutureLabelField.grid(row=1,column=8)
-        
-        self.InTimeFutureLabel = Label()
-        self.InTimeFutureLabel["text"]="強關"
-        self.InTimeFutureLabel.grid(row=0,column=8)
-        
-        self.InTimeFutureLabel = Label()
-        self.InTimeFutureLabel["text"]="成交"
-        self.InTimeFutureLabel.grid(row=0,column=9)
-        
-        
-        
-        self.InTimeFutureLabel = Label()
-        self.InTimeFutureLabel["text"]="弱關"
-        self.InTimeFutureLabel.grid(row=0,column=10)
-        
-       
-        
-        
-        
+        self.ThreemenBox.grid(row=6,column=4)        
+        for x in range(8,11,1):
+            self.InTimeFutureLabel = Label()  
+            self.InTimeFutureLabel["text"]=self.LabelName[x-8]
+            self.InTimeFutureLabel.grid(row=0,column=x)
+
+
     #    self.PrintFeautre_thread = threading.Thread(target=self.PrintInTimeFuture())
     #    self.PrintFeautre_thread.start()
-        self.PrintInTimeFuture()
+     #   self.PrintInTimeFuture()
         self.ThreeMenDollar()
-        self.PrintThreeMen()
-     #   self.PrinThreeMenDollar_thread = threading.Thread(target=self.PrintThreeMen())
-     #   self.PrinThreeMenDollar_thread.start()
+        self.PrintFeautre()
+
 ####################### initial interface #######################        
         self.interface.mainloop()
         
         
-    def PrintInTimeFuture(self):
-
-            self.InTimeFutureLabelField.insert(INSERT,self.InTimeObject.InTimeFuture)
-
+  #  def PrintInTimeFuture(self):
+  #          self.InTimeFutureLabelField.insert(INSERT,self.InTimeObject.InTimeFuture)
+       
     def PrintFeautre(self):
-        count=0
-     #   for row in csv.reader(io.TextIOWrapper(self.TodayFutureResponse)):
-        for row in csv.reader(codecs.iterdecode(self.TodayFutureResponse,"Latin-1")):
-            count = count + 1
-            if count==1:
+        temp=[]
+        for item in csv.reader(codecs.iterdecode(self.TodayFutureResponse,"Latin-1")):
+            temp.append(item[7])
+        for x in range(temp.__len__()):
+            if x!=0 and x<4:
+                NewLabel=Label()
+                NewLabel["text"]=temp[x]
+                NewLabel.grid(row=x,column=5)
+                print(temp[x])
+        abc=[]
+        blank=0
+        #找尋三大法人  跳過地第一行csv
+        for test in csv.reader(codecs.iterdecode(self.ThreeMenDollarResponse,"Latin-1")):
+            if blank==0:            
+                blank = blank+1
                 continue
-            elif count!=4:
-              self.FutureName=Label()
-              self.FutureName["text"]="外資"
-              self.FutureName.grid(row=3,column=4+count)
-            else:
-                break
-          #  self.FutureVar.set(row[13])
-          
-      #  if count==4:
-          #      break
-            
-    def PrintThreeMen(self):
-        count =0
-        for row in csv.reader(codecs.iterdecode(self.ThreeMenResponse,"Latin-1")):  
-            self.ThreemenBox.insert(count+1,row[0])
-            #self.ThreemenField.insert(INSERT,row[1:2])
+            abc.append(test[3])
+        for y in range(abc.__len__()):
+            if y >=2 and y <=4:
+                NewLabel=Label()
+                NewLabel["text"]=abc[y]
+                NewLabel.grid(row=y-1,column=6)
         
+        
+        print(abc)
+        
+          
     def GetTextFromVolumeField(self,event):
         self.TargetPERatio = float(self.inputtVolumeField.get())
         
@@ -329,14 +273,9 @@ class GUI(GetData):
         print(self.AllData.__len__())
         for x in range(int(self.AllData.__len__()/4)):
             for y in range(0,4,1):
-                #tkinter.Text(self.interface,text='hello').grid(row=3+x,column=y)
-               # self.guitext.insert(INSERT,"hello...").grid(row=3+x,column=y)
-               
                self.temp = tkinter.Text(self.interface,height=3,width=3)
                self.temp.insert(INSERT,self.AllData[x*4+y])
                self.temp.grid(row=5+x,column=y)
-
-
 
 
 b = GUI()
