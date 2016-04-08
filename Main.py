@@ -8,12 +8,14 @@ import sys
 import urllib.request
 import tkinter
 import datetime
+import time 
 import threading
 import json
 import codecs
+import base64
+from shutil import copyfileobj
 from bs4 import BeautifulSoup
 from yahoo_finance import Share
-import urllib
 from pip._vendor.distlib.compat import raw_input
 from tkinter import Label, Entry, Frame,SE,Tk, StringVar
 from tkinter.constants import INSERT,END
@@ -59,7 +61,32 @@ class GetData():
         self.AllData=[]
         self.TrendThreeMen=[]
         self.HistoryData=[]
+        self.PERatioCsvfile()
+     #   self.tesfile()
 #####################
+    
+    
+    def PERatioCsvfile(self):
+        first = requests.get('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php')
+        first.encoding = 'big5'
+        soup = BeautifulSoup(first.text,"html.parser")
+        a={}
+        for hey in soup.select('input'):
+            if 'hidden' in hey.get('type'):
+                if hey.get('name') =='html':
+                    a[hey.get('name')] = base64.b64encode(hey.get('value').encode('utf-8'))
+                else:
+                    a[hey.get('name')] = hey.get('value')
+        data=a
+        res2 = requests.post('http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_print.php?language=ch&save=csv',data=a,stream=True)
+        f = open('export.csv','wb')
+        copyfileobj(res2.raw,f)
+        f.close()
+    
+
+    
+           
+        
     def SearchPERatio(self):
         for x in range(8,503,5):
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
@@ -98,8 +125,14 @@ class GetData():
         return self.HistoryData
      
     def ThreeMenDollar(self): #三大法人
-        
+
+###############弱五點前則抓前一天資料##################
         Today = datetime.datetime.now().strftime("%Y%m%d")
+        hour = float(time.strftime("%H"))
+        if hour < 17:
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+            print(yesterday.strftime("%Y%m%d"))
+            Today = yesterday.strftime("%Y%m%d")
         print(Today)
         url = "http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date="+Today+"&report_type=day&language=ch&save=csv" 
         self.ThreeMenDollarResponse = urllib.request.urlopen(url)
@@ -116,28 +149,27 @@ class GetData():
               'emonth':datetime.datetime.now().strftime("%m"),
               'eday':datetime.datetime.now().strftime("%d"),
         }
-   #     TodayFuture={  #setting the post query data
-   #           'syear':'2016',
-   #           'smonth':'4',
-   #           'sday':'1',
-   #           'eyear':'2016',
-   #           'emonth':'4',
-   #           'eday':'1'
-   #     }
+##############如果是再下午五點前，則前一天資料#####################
+        hour = float(time.strftime("%H"))
+        if hour < 17:
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+            TodayFuture['sday'] = yesterday.strftime("%d")
+            TodayFuture['eday'] = yesterday.strftime("%d")
+            
+            
         FutureRequest= requests.post('http://www.taifex.com.tw/chinese/3/7_12_8dl.asp',data=TodayFuture,allow_redirects=False)
         URLRedirect = "http://www.taifex.com.tw"+FutureRequest.headers['Location']
         RealCSVFile = requests.get(URLRedirect)
         print(RealCSVFile.url)
         self.TodayFutureResponse = urllib.request.urlopen(RealCSVFile.url)
- #       for row in csv.reader(codecs.iterdecode(self.TodayFutureResponse,"Latin-1")):
-       #for row in csv.reader(io.TextIOWrapper(self.TodayFutureResponse)):
-  #          print(row)
 
 class GUI(GetData):
     
     def __init__(self):
         super().__init__()
 ####################### initial interface #######################
+        
+
         self.LabelName=['強關','成交','弱關']
         self.BigThreeLabelName=['法人','自營商','投信','外資','三大法人']
         self.InTimeObject = InTimeData()
@@ -145,6 +177,17 @@ class GUI(GetData):
                
         self.interface = tkinter.Tk()
         self.interface.title("HI")
+        
+        
+        self.aa=tkinter.Scrollbar()
+        self.ThreemenBox=tkinter.Listbox(self.interface)
+        self.ThreemenBox.grid(row=6,column=4)
+        self.aa.config(command=self.ThreemenBox.yview())
+        self.ThreemenBox.config(yscrollcommand=self.aa)
+      #  for x in range(1,20,1):
+      #      self.ThreemenBox.insert(END,x.__str__()+"hi+hihi\n123123")
+       
+        
         
         self.inputPERatio = Label()
         self.inputPERatio["text"]="Input Ratio"
@@ -175,7 +218,7 @@ class GUI(GetData):
         self.inputWannaPriceField.grid(row=3,column=1)
          
         self.CheckButton = tkinter.Button(text="Enter")
-        self.CheckButton.bind('<Button-1>',self.OutputData)
+        self.CheckButton.bind('<Button-1>',self.tesfile)
         self.CheckButton.grid(row=4)
   
   #      self.FutureBox = tkinter.Listbox()
@@ -195,18 +238,17 @@ class GUI(GetData):
         self.FutureNameTitle.grid(row=0,column=6)
 
         
-        self.FutureVar = StringVar()
+#        self.FutureVar = StringVar()
         self.FutureToday()
 
-        self.ForeignNet=Label(textvariable=self.FutureVar)
+
+#        self.ForeignNet=Label(textvariable=self.FutureVar)
    #     self.ForeignNet["text"]=self.FutureVar
-        self.ForeignNet.grid(row=3,column=6)
+#        self.ForeignNet.grid(row=3,column=6)
         
         
 #############################################################
 
-        self.ThreemenBox=tkinter.Listbox()
-        self.ThreemenBox.grid(row=6,column=4)        
         for x in range(8,11,1):
             self.InTimeFutureLabel = Label()  
             self.InTimeFutureLabel["text"]=self.LabelName[x-8]
@@ -218,14 +260,27 @@ class GUI(GetData):
      #   self.PrintInTimeFuture()
         self.ThreeMenDollar()
         self.PrintFeautre()
-
+            
+ 
+ #       self.tesfile()
 ####################### initial interface #######################        
         self.interface.mainloop()
-        
-        
-  #  def PrintInTimeFuture(self):
-  #          self.InTimeFutureLabelField.insert(INSERT,self.InTimeObject.InTimeFuture)
-       
+         
+    
+    def tesfile(self):
+            count =0 
+            f = open("export.csv","r")
+            for row in csv.reader(f):
+                count+=1 
+                if count >=4 and (row[2]!='-' and float(row[2])<=20):                 
+    #float(self.TargetPERatio):
+                        QueryPrice=Share(row[0]+'.TW')
+                        if QueryPrice.get_earnings_share()!=None and float(QueryPrice.get_earnings_share())>=2: #float(QueryPrice.get_earnings_share())>=self.TargetEPS:
+                            self.ThreemenBox.insert(END,row)
+                if count==100:
+                    break
+
+         
     def PrintFeautre(self):
         temp=[]
         for item in csv.reader(codecs.iterdecode(self.TodayFutureResponse,"Latin-1")):
@@ -255,14 +310,14 @@ class GUI(GetData):
         
           
     def GetTextFromVolumeField(self,event):
-        self.TargetPERatio = float(self.inputtVolumeField.get())
+        self.TargetVolume = float(self.inputtVolumeField.get())
         
     def GetTextFromWannaPriceField(self,event):
-        self.TargetPERatio = float(self.inputWannaPriceField.get())
+        self.TargetPrice = float(self.inputWannaPriceField.get())
         
     def GetTextFromPREField(self,event):
         self.TargetPERatio = float(self.inputPREField.get())
-        
+            
     def GetTextFromEPSField(self,event):
         self.TargetEPS=float(self.inputEPSField.get())
         self.SearchPERatio()

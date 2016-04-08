@@ -50,8 +50,12 @@ f = open('export.csv','wb')
 copyfileobj(res2.raw,f)
 f.close()
 #for row in csv.reader(io.TextIOWrapper(TodayFeatureResponse)):
-for row in csv.reader(codecs.iterdecode(TodayFeatureResponse,"Latin-1")):
+
+f = open("export.csv","r")
+for row in csv.reader(f):
     print(row)
+#for row in csv.reader(codecs.iterdecode(TodayFeatureResponse,"Latin-1")):
+ #   print(row)
 
 print("========================================================================")
 TodayFeature={  #setting the post query data
