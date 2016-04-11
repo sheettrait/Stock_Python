@@ -20,6 +20,11 @@ from time import sleep, gmtime
 from _datetime import date
 import time
 print(time.strftime("%H"))
+print(time.strftime("%Y"))
+print(time.strftime("%m"))
+print(time.strftime("%d"))
+
+print(date(int(time.strftime("%Y")), int(time.strftime("%m")), 21).isoweekday())
 
 while(True):
     url="http://mis.twse.com.tw/stock/data/futures_side.txt"   

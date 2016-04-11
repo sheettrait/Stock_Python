@@ -17,7 +17,7 @@ from shutil import copyfileobj
 from bs4 import BeautifulSoup
 from yahoo_finance import Share
 from pip._vendor.distlib.compat import raw_input
-from tkinter import Label, Entry, Frame,SE,Tk, StringVar
+from tkinter import Label, Entry, Frame,SE,Tk, StringVar, Event
 from tkinter.constants import INSERT,END
 from tkinter.ttk import *
 
@@ -58,6 +58,9 @@ class GetData():
         self.soup = BeautifulSoup(self.Responese,"html.parser")
         self.TargetPERatio = 0  # raw_input("Please input the PERatio")
         self.TargetEPS = 0      #raw_input("Please input the EPS")
+        self.TargetVolume=0
+        self.TargetPriceLow=1
+        self.TargetPrice=70
         self.AllData=[]
         self.TrendThreeMen=[]
         self.HistoryData=[]
@@ -83,10 +86,7 @@ class GetData():
         copyfileobj(res2.raw,f)
         f.close()
     
-
-    
-           
-        
+     
     def SearchPERatio(self):
         for x in range(8,503,5):
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
@@ -207,14 +207,14 @@ class GUI(GetData):
         self.inputVolume["text"]="Input Volume"
         self.inputVolume.grid(row=2,column=0)
         self.inputVolumeField = Entry(self.interface)
-        self.inputVolumeField.bind('<Return>',self.GetTextFromEPSField)
+        self.inputVolumeField.bind('<Return>',self.GetTextFromVolumeField)
         self.inputVolumeField.grid(row=2,column=1)
         
         self.inputWannaPrice = Label()
         self.inputWannaPrice["text"]="Input Close Price"
         self.inputWannaPrice.grid(row=3,column=0)
         self.inputWannaPriceField = Entry(self.interface)
-        self.inputWannaPriceField.bind('<Return>',self.GetTextFromEPSField)
+        self.inputWannaPriceField.bind('<Return>',self.GetTextFromWannaPriceField)
         self.inputWannaPriceField.grid(row=3,column=1)
          
         self.CheckButton = tkinter.Button(text="Enter")
@@ -266,17 +266,21 @@ class GUI(GetData):
 ####################### initial interface #######################        
         self.interface.mainloop()
          
-    
-    def tesfile(self):
+    def hia(self,event):
+        print("@32323232")
+    def tesfile(self,event):
             count =0 
             f = open("export.csv","r")
             for row in csv.reader(f):
+                print(row)
                 count+=1 
-                if count >=4 and (row[2]!='-' and float(row[2])<=20):                 
+                if count >=4 and (row[2]!='-' and float(row[2])<=self.TargetPERatio):#20):    #從第四行開始             
     #float(self.TargetPERatio):
                         QueryPrice=Share(row[0]+'.TW')
-                        if QueryPrice.get_earnings_share()!=None and float(QueryPrice.get_earnings_share())>=2: #float(QueryPrice.get_earnings_share())>=self.TargetEPS:
-                            self.ThreemenBox.insert(END,row)
+                        if QueryPrice.get_earnings_share()!=None and float(QueryPrice.get_earnings_share())>=self.TargetEPS and float: #float(QueryPrice.get_earnings_share())>=self.TargetEPS:
+                            if float(QueryPrice.get_volume())>=self.TargetVolume and float(QueryPrice.get_price())<=self.TargetPrice:
+                                self.ThreemenBox.insert(END,row)
+                                print(row)
                 if count==100:
                     break
 
@@ -290,7 +294,7 @@ class GUI(GetData):
                 NewLabel=Label()
                 NewLabel["text"]=temp[x]
                 NewLabel.grid(row=x,column=5)
-                print(temp[x])
+   #             print(temp[x])
         abc=[]
         blank=0
         #找尋三大法人  跳過地第一行csv
@@ -306,21 +310,23 @@ class GUI(GetData):
                 NewLabel.grid(row=y-1,column=6)
         
         
-        print(abc)
+  #      print(abc)
         
           
     def GetTextFromVolumeField(self,event):
-        self.TargetVolume = float(self.inputtVolumeField.get())
+        self.TargetVolume = float(self.inputVolumeField.get())
+        print(self.TargetVolume)
         
     def GetTextFromWannaPriceField(self,event):
         self.TargetPrice = float(self.inputWannaPriceField.get())
-        
+        print(self.TargetPrice)
     def GetTextFromPREField(self,event):
         self.TargetPERatio = float(self.inputPREField.get())
-            
+        print(self.TargetPERatio)
     def GetTextFromEPSField(self,event):
         self.TargetEPS=float(self.inputEPSField.get())
-        self.SearchPERatio()
+        print(self.TargetEPS)
+    #    self.SearchPERatio()
         
     def OutputData(self,event):
         for x in range(self.AllData.__len__()):     #Output the outcome 
