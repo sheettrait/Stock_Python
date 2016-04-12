@@ -11,6 +11,7 @@ import datetime
 import time 
 import threading
 import json
+import re
 import codecs
 import base64
 from shutil import copyfileobj
@@ -20,7 +21,10 @@ from pip._vendor.distlib.compat import raw_input
 from tkinter import Label, Entry, Frame,SE,Tk, StringVar, Event
 from tkinter.constants import INSERT,END
 from tkinter.ttk import *
-
+from time import sleep
+from threading import Thread
+import _thread
+from asyncio import events
 class InTimeData():
     def __init__(self):
         self.IntimeRquest = requests.session()
@@ -29,6 +33,7 @@ class InTimeData():
         self.InTimeFuture=[]
         self.PowerStage=0
         self.WeakStage=0
+        self.FutureNowPrice=0
                 
     def GetInTimeStockInfo(self,StockNumber):
         url = "http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_"+StockNumber.__str__()+".tw"
@@ -41,16 +46,14 @@ class InTimeData():
         url="http://mis.twse.com.tw/stock/data/futures_side.txt"   
         FutureIntTimeResponse = requests.get(url)
         FutureInfo=json.loads(FutureIntTimeResponse.text)
+        self.FutureNowPrice =FutureInfo['msgArray'][0]['z']
         Stage=float(FutureInfo['msgArray'][0]['h'])-float(FutureInfo['msgArray'][0]['l'])
         self.PowerStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.618))
         self.WeakStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.382))
-        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['z'])))
-  #      self.InTimeFuture[0]= int(float(FutureInfo['msgArray'][0]['y']))-int(float(FutureInfo['msgArray'][0]['z']))
-        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['y']))-int(float(FutureInfo['msgArray'][0]['z'])))  
-        self.InTimeFuture.append(self.PowerStage)
-        self.InTimeFuture.append(self.WeakStage)                   
-
-
+#        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['z'])))
+#        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['y']))-int(float(FutureInfo['msgArray'][0]['z'])))  
+#        self.InTimeFuture.append(self.PowerStage)
+#        self.InTimeFuture.append(self.WeakStage)                   
 
 class GetData():
     def __init__(self):
@@ -65,7 +68,6 @@ class GetData():
         self.TrendThreeMen=[]
         self.HistoryData=[]
         self.PERatioCsvfile()
-     #   self.tesfile()
 #####################
     
     
@@ -92,16 +94,15 @@ class GetData():
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
             if self.soup.select('.basic2')[x].text != '-':
                 if float(self.soup.select('.basic2')[x].text) <=float(self.TargetPERatio) :
-                    QueryPrice = Share(self.soup.select('.basic2')[x-2].text+'.TW') #Query the API
-        
+                    QueryPrice = Share(self.soup.select('.basic2')[x-2].text+'.TW') #Query the API  
                     if QueryPrice.get_earnings_share()!=None and float(QueryPrice.get_earnings_share())>=self.TargetEPS:                     # Get EPS
                         self.AllData.append(self.soup.select('.basic2')[x-2].text)  # StockNumber
                         self.AllData.append(QueryPrice.get_open())                  # Get FinalPrice
                         self.AllData.append(self.soup.select('.basic2')[x].text)    # Get PERatio
                         self.AllData.append(QueryPrice.get_earnings_share())
 
-    def YahooAPI(self,StockNumber):
-        TempURL = "http://finance.yahoo.com/d/quotes.csv?s="+StockNumber+".TW&f=gherl1n"
+#    def YahooAPI(self,StockNumber):
+#        TempURL = "http://finance.yahoo.com/d/quotes.csv?s="+StockNumber+".TW&f=gherl1n"
     
     def DayMoving(self,StockNumber):        #個股的平均線
         PrehistoryURL = "http://real-chart.finance.yahoo.com/table.csv?s="+StockNumber+".TW"
@@ -169,7 +170,6 @@ class GUI(GetData):
         super().__init__()
 ####################### initial interface #######################
         
-
         self.LabelName=['強關','成交','弱關']
         self.BigThreeLabelName=['法人','自營商','投信','外資','三大法人']
         self.InTimeObject = InTimeData()
@@ -177,18 +177,14 @@ class GUI(GetData):
                
         self.interface = tkinter.Tk()
         self.interface.title("HI")
-        
-        
+              
         self.aa=tkinter.Scrollbar()
         self.ThreemenBox=tkinter.Listbox(self.interface)
         self.ThreemenBox.grid(row=6,column=4)
         self.aa.config(command=self.ThreemenBox.yview())
         self.ThreemenBox.config(yscrollcommand=self.aa)
-      #  for x in range(1,20,1):
-      #      self.ThreemenBox.insert(END,x.__str__()+"hi+hihi\n123123")
-       
-        
-        
+
+###############################################################################        
         self.inputPERatio = Label()
         self.inputPERatio["text"]="Input Ratio"
         self.inputPERatio.grid(row=0,column=0)
@@ -220,9 +216,7 @@ class GUI(GetData):
         self.CheckButton = tkinter.Button(text="Enter")
         self.CheckButton.bind('<Button-1>',self.tesfile)
         self.CheckButton.grid(row=4)
-  
-  #      self.FutureBox = tkinter.Listbox()
-  #      self.FutureBox.grid(row=12,column=12)
+###############################################################################    
 #期貨未平倉口數Label設定
 
         for x in range(0,5,1):
@@ -236,52 +230,75 @@ class GUI(GetData):
         self.FutureNameTitle=Label()
         self.FutureNameTitle["text"]="買賣超金額"
         self.FutureNameTitle.grid(row=0,column=6)
-
+  
+        self.showWeakStage = StringVar()
+        self.showPowerStage = StringVar()
+        self.showClosePrice = StringVar()
         
-#        self.FutureVar = StringVar()
+        self.LabelWeak = Label()
+        self.LabelWeak.grid(row=1,column=8)
+        self.LabelPower = Label()
+        self.LabelPower.grid(row=1,column=9)
+        self.LabelClose = Label()
+        self.LabelClose.grid(row=1,column=10)
+
+        self.test2 = StringVar()
+        self.test1 = Label()
+        self.test1.grid(row=10,column=10)
         self.FutureToday()
-
-
-#        self.ForeignNet=Label(textvariable=self.FutureVar)
-   #     self.ForeignNet["text"]=self.FutureVar
-#        self.ForeignNet.grid(row=3,column=6)
-        
         
 #############################################################
 
-        for x in range(8,11,1):
+        for x in range(8,11,1):                         ###set the label name
             self.InTimeFutureLabel = Label()  
             self.InTimeFutureLabel["text"]=self.LabelName[x-8]
             self.InTimeFutureLabel.grid(row=0,column=x)
 
-
-    #    self.PrintFeautre_thread = threading.Thread(target=self.PrintInTimeFuture())
-    #    self.PrintFeautre_thread.start()
-     #   self.PrintInTimeFuture()
         self.ThreeMenDollar()
         self.PrintFeautre()
-            
- 
- #       self.tesfile()
+       
 ####################### initial interface #######################        
+        self.interface.after(1000,self.PrintInTime)
         self.interface.mainloop()
-         
-    def hia(self,event):
-        print("@32323232")
+
+#    def abc(self):
+#        for a in range(0,3,1):            
+#            print(a)
+#            self.test2.set(a)
+#            self.test1["text"]=self.test2.get()
+#            self.test1.update()
+#            time.sleep(2)
+    def mmka(self):
+        while True:
+            self.InTimeObject.FutureInTime()
+            self.showPowerStage.set(self.InTimeObject.PowerStage)
+            self.showWeakStage.set(self.InTimeObject.WeakStage)
+            self.showClosePrice.set(self.InTimeObject.FutureNowPrice)
+            self.LabelPower["text"] = self.showPowerStage.get()
+            self.LabelWeak["text"]=self.showWeakStage.get()
+            self.LabelClose["text"]=self.showClosePrice.get()
+            self.LabelPower.update()
+            self.LabelWeak.update()
+            self.LabelClose.update()
+            time.sleep(1)
+            
+    def PrintInTime(self):
+        self.PrintFeautre_thread = threading.Thread(target=self.mmka)
+        self.PrintFeautre_thread.start()  
+            
     def tesfile(self,event):
             count =0 
             f = open("export.csv","r")
             for row in csv.reader(f):
                 print(row)
                 count+=1 
-                if count >=4 and (row[2]!='-' and float(row[2])<=self.TargetPERatio):#20):    #從第四行開始             
-    #float(self.TargetPERatio):
+                if count >=4 and (row[2]!='-' and float(row[2])<=self.TargetPERatio):
                         QueryPrice=Share(row[0]+'.TW')
                         if QueryPrice.get_earnings_share()!=None and float(QueryPrice.get_earnings_share())>=self.TargetEPS and float: #float(QueryPrice.get_earnings_share())>=self.TargetEPS:
                             if float(QueryPrice.get_volume())>=self.TargetVolume and float(QueryPrice.get_price())<=self.TargetPrice:
-                                self.ThreemenBox.insert(END,row)
-                                print(row)
-                if count==100:
+                                information = row[0] + row[1]+"\t" + QueryPrice.get_earnings_share() +" "+ QueryPrice.get_volume()+"   " + QueryPrice.get_price()
+                                self.ThreemenBox.insert(END,information)
+                if count==50:
                     break
 
          
@@ -310,22 +327,20 @@ class GUI(GetData):
                 NewLabel.grid(row=y-1,column=6)
         
         
-  #      print(abc)
-        
-          
+
     def GetTextFromVolumeField(self,event):
         self.TargetVolume = float(self.inputVolumeField.get())
-        print(self.TargetVolume)
+   #     print(self.TargetVolume)
         
     def GetTextFromWannaPriceField(self,event):
         self.TargetPrice = float(self.inputWannaPriceField.get())
-        print(self.TargetPrice)
+  #      print(self.TargetPrice)
     def GetTextFromPREField(self,event):
         self.TargetPERatio = float(self.inputPREField.get())
-        print(self.TargetPERatio)
+ #       print(self.TargetPERatio)
     def GetTextFromEPSField(self,event):
         self.TargetEPS=float(self.inputEPSField.get())
-        print(self.TargetEPS)
+#        print(self.TargetEPS)
     #    self.SearchPERatio()
         
     def OutputData(self,event):
@@ -340,3 +355,4 @@ class GUI(GetData):
 
 
 b = GUI()
+
