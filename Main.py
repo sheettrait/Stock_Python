@@ -33,7 +33,10 @@ class InTimeData():
         self.InTimeFuture=[]
         self.PowerStage=0
         self.WeakStage=0
+        self.MiddleStage=0
         self.FutureNowPrice=0
+  #      self.TodayLow=0
+  #      self.TodayHigh=0
                 
     def GetInTimeStockInfo(self,StockNumber):
         url = "http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_"+StockNumber.__str__()+".tw"
@@ -46,10 +49,15 @@ class InTimeData():
         url="http://mis.twse.com.tw/stock/data/futures_side.txt"   
         FutureIntTimeResponse = requests.get(url)
         FutureInfo=json.loads(FutureIntTimeResponse.text)
-        self.FutureNowPrice =FutureInfo['msgArray'][0]['z']
-        Stage=float(FutureInfo['msgArray'][0]['h'])-float(FutureInfo['msgArray'][0]['l'])
-        self.PowerStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.618))
-        self.WeakStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.382))
+        self.FutureNowPrice =float(FutureInfo['msgArray'][0]['z'])
+#        self.TodayLow=FutureInfo['msgArray'][0]['l']
+#        self.TodayHigh=FutureInfo['msgArray'][0]['h']
+        self.MiddleStage = int((float(FutureInfo['msgArray'][0]['h'])+float(FutureInfo['msgArray'][0]['l']))/2)
+        Stage=int(float(FutureInfo['msgArray'][0]['h'])-float(FutureInfo['msgArray'][0]['l']))
+        self.PowerStage = int(Stage*0.618)
+        self.WeakStage = int(Stage*0.382)
+    #    self.PowerStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.618))
+    #    self.WeakStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.382))
 #        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['z'])))
 #        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['y']))-int(float(FutureInfo['msgArray'][0]['z'])))  
 #        self.InTimeFuture.append(self.PowerStage)
@@ -170,7 +178,7 @@ class GUI(GetData):
         super().__init__()
 ####################### initial interface #######################
         
-        self.LabelName=['強關','成交','弱關']
+        self.LabelName=['滴滿足點','弱關','中關','強關','高滿足點']
         self.BigThreeLabelName=['法人','自營商','投信','外資','三大法人']
         self.InTimeObject = InTimeData()
         self.InTimeObject.FutureInTime()
@@ -231,16 +239,27 @@ class GUI(GetData):
         self.FutureNameTitle["text"]="買賣超金額"
         self.FutureNameTitle.grid(row=0,column=6)
   
+        self.HighSatisfy = StringVar()
         self.showWeakStage = StringVar()
         self.showPowerStage = StringVar()
+        self.showMiddleStage=StringVar()
+        self.LowSatisfy = StringVar()
         self.showClosePrice = StringVar()
         
+        self.LabelLowSatisfy=Label()
+        self.LabelLowSatisfy.grid(row=1,column=8)
         self.LabelWeak = Label()
-        self.LabelWeak.grid(row=1,column=8)
+        self.LabelWeak.grid(row=1,column=9)
+        self.LabelMiddle = Label()
+        self.LabelMiddle.grid(row=1,column=10)
         self.LabelPower = Label()
-        self.LabelPower.grid(row=1,column=9)
+        self.LabelPower.grid(row=1,column=11)
+        self.LabelHighSatisfy = Label()
+        self.LabelHighSatisfy.grid(row=1,column=12)
         self.LabelClose = Label()
-        self.LabelClose.grid(row=1,column=10)
+        
+        self.LabelClose.grid(row=3,column=10)
+        
 
         self.test2 = StringVar()
         self.test1 = Label()
@@ -249,14 +268,14 @@ class GUI(GetData):
         
 #############################################################
 
-        for x in range(8,11,1):                         ###set the label name
+        for x in range(8,13,1):                         ###set the label name
             self.InTimeFutureLabel = Label()  
             self.InTimeFutureLabel["text"]=self.LabelName[x-8]
             self.InTimeFutureLabel.grid(row=0,column=x)
 
         self.ThreeMenDollar()
         self.PrintFeautre()
-       
+        self.InTimeObject.GetInTimeStockInfo(2330)
 ####################### initial interface #######################        
         self.interface.after(1000,self.PrintInTime)
         self.interface.mainloop()
@@ -271,12 +290,26 @@ class GUI(GetData):
     def mmka(self):
         while True:
             self.InTimeObject.FutureInTime()
-            self.showPowerStage.set(self.InTimeObject.PowerStage)
-            self.showWeakStage.set(self.InTimeObject.WeakStage)
+            
+            self.HighSatisfy.set(self.InTimeObject.PowerStage+self.InTimeObject.MiddleStage)
+            self.showPowerStage.set(self.InTimeObject.WeakStage+self.InTimeObject.MiddleStage)
+            self.showMiddleStage.set(self.InTimeObject.MiddleStage)
+            self.showWeakStage.set(self.InTimeObject.MiddleStage-self.InTimeObject.WeakStage)       
+            self.LowSatisfy.set(self.InTimeObject.MiddleStage-self.InTimeObject.PowerStage)
             self.showClosePrice.set(self.InTimeObject.FutureNowPrice)
+            
+            
+            self.LabelHighSatisfy["text"]=self.HighSatisfy.get()
             self.LabelPower["text"] = self.showPowerStage.get()
+            self.LabelMiddle["text"]=self.showMiddleStage.get()  
             self.LabelWeak["text"]=self.showWeakStage.get()
+            self.LabelLowSatisfy["text"]=self.LowSatisfy.get()
             self.LabelClose["text"]=self.showClosePrice.get()
+            
+            
+            self.LabelHighSatisfy.update()
+            self.LabelLowSatisfy.update()                             
+            self.LabelMiddle.update()
             self.LabelPower.update()
             self.LabelWeak.update()
             self.LabelClose.update()
