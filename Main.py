@@ -35,8 +35,6 @@ class InTimeData():
         self.WeakStage=0
         self.MiddleStage=0
         self.FutureNowPrice=0
-  #      self.TodayLow=0
-  #      self.TodayHigh=0
                 
     def GetInTimeStockInfo(self,StockNumber):
         url = "http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_"+StockNumber.__str__()+".tw"
@@ -56,12 +54,7 @@ class InTimeData():
         Stage=int(float(FutureInfo['msgArray'][0]['h'])-float(FutureInfo['msgArray'][0]['l']))
         self.PowerStage = int(Stage*0.618)
         self.WeakStage = int(Stage*0.382)
-    #    self.PowerStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.618))
-    #    self.WeakStage = int(float(FutureInfo['msgArray'][0]['z'])+float(Stage*0.382))
-#        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['z'])))
-#        self.InTimeFuture.append(int(float(FutureInfo['msgArray'][0]['y']))-int(float(FutureInfo['msgArray'][0]['z'])))  
-#        self.InTimeFuture.append(self.PowerStage)
-#        self.InTimeFuture.append(self.WeakStage)                   
+        
 
 class GetData():
     def __init__(self):
@@ -108,10 +101,6 @@ class GetData():
                         self.AllData.append(QueryPrice.get_open())                  # Get FinalPrice
                         self.AllData.append(self.soup.select('.basic2')[x].text)    # Get PERatio
                         self.AllData.append(QueryPrice.get_earnings_share())
-
-#    def YahooAPI(self,StockNumber):
-#        TempURL = "http://finance.yahoo.com/d/quotes.csv?s="+StockNumber+".TW&f=gherl1n"
-    
     def DayMoving(self,StockNumber):        #個股的平均線
         PrehistoryURL = "http://real-chart.finance.yahoo.com/table.csv?s="+StockNumber+".TW"
         CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(PrehistoryURL)))
@@ -137,11 +126,22 @@ class GetData():
 
 ###############弱五點前則抓前一天資料##################
         Today = datetime.datetime.now().strftime("%Y%m%d")
+        year =  int(time.strftime("%Y"))
+        month= int(time.strftime("%m"))
+        day = int(time.strftime("%d"))
         hour = float(time.strftime("%H"))
-        if hour < 17:
+        judgeday = datetime.date(year,month,day).isoweekday()
+        if judgeday==6:
             yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
-            print(yesterday.strftime("%Y%m%d"))
             Today = yesterday.strftime("%Y%m%d")
+        elif judgeday==7:
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=2)
+            Today = yesterday.strftime("%Y%m%d")   
+        elif judgeday==1 and hour < 17 :
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=3)
+            Today = yesterday.strftime("%Y%m%d")
+
+
         print(Today)
         url = "http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date="+Today+"&report_type=day&language=ch&save=csv" 
         self.ThreeMenDollarResponse = urllib.request.urlopen(url)
@@ -159,11 +159,29 @@ class GetData():
               'eday':datetime.datetime.now().strftime("%d"),
         }
 ##############如果是再下午五點前，則前一天資料#####################
+        Today = datetime.datetime.now().strftime("%Y%m%d")
+        year =  int(time.strftime("%Y"))
+        month= int(time.strftime("%m"))
+        day = int(time.strftime("%d"))
         hour = float(time.strftime("%H"))
-        if hour < 17:
+        judgeday = datetime.date(year,month,day).isoweekday()
+        if judgeday==6:
             yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
             TodayFuture['sday'] = yesterday.strftime("%d")
             TodayFuture['eday'] = yesterday.strftime("%d")
+        elif judgeday==7:
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=2)
+            TodayFuture['sday'] = yesterday.strftime("%d")
+            TodayFuture['eday'] = yesterday.strftime("%d")
+        elif judgeday==1 and hour < 17 :
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=3)
+            TodayFuture['sday'] = yesterday.strftime("%d")
+            TodayFuture['eday'] = yesterday.strftime("%d")
+            
+    #    if hour < 17:
+    #        yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+    #        TodayFuture['sday'] = yesterday.strftime("%d")
+    #        TodayFuture['eday'] = yesterday.strftime("%d")
             
             
         FutureRequest= requests.post('http://www.taifex.com.tw/chinese/3/7_12_8dl.asp',data=TodayFuture,allow_redirects=False)
