@@ -41,15 +41,14 @@ class InTimeData():
         IntimeResponse = self.IntimeRquest.get(url)
         StockInfo = json.loads(IntimeResponse.text)
         self.IntimeStock.append(StockInfo)
-        print(StockInfo)
+    #    print(StockInfo['msgArray'][0]['v'])
+        return StockInfo['msgArray'][0]['v']
     
     def FutureInTime(self):        #Get Future Price In time 
         url="http://mis.twse.com.tw/stock/data/futures_side.txt"   
         FutureIntTimeResponse = requests.get(url)
         FutureInfo=json.loads(FutureIntTimeResponse.text)
         self.FutureNowPrice =float(FutureInfo['msgArray'][0]['z'])
-#        self.TodayLow=FutureInfo['msgArray'][0]['l']
-#        self.TodayHigh=FutureInfo['msgArray'][0]['h']
         self.MiddleStage = int((float(FutureInfo['msgArray'][0]['h'])+float(FutureInfo['msgArray'][0]['l']))/2)
         Stage=int(float(FutureInfo['msgArray'][0]['h'])-float(FutureInfo['msgArray'][0]['l']))
         self.PowerStage = int(Stage*0.618)
@@ -88,10 +87,9 @@ class GetData():
         f = open('export.csv','wb')
         copyfileobj(res2.raw,f)
         f.close()
-    
-     
+        
     def SearchPERatio(self):
-        for x in range(8,503,5):
+        for x in range(8,1503,5):
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
             if self.soup.select('.basic2')[x].text != '-':
                 if float(self.soup.select('.basic2')[x].text) <=float(self.TargetPERatio) :
@@ -101,6 +99,7 @@ class GetData():
                         self.AllData.append(QueryPrice.get_open())                  # Get FinalPrice
                         self.AllData.append(self.soup.select('.basic2')[x].text)    # Get PERatio
                         self.AllData.append(QueryPrice.get_earnings_share())
+    
     def DayMoving(self,StockNumber):        #個股的平均線
         PrehistoryURL = "http://real-chart.finance.yahoo.com/table.csv?s="+StockNumber+".TW"
         CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(PrehistoryURL)))
@@ -123,7 +122,6 @@ class GetData():
         return self.HistoryData
      
     def ThreeMenDollar(self): #三大法人
-
 ###############弱五點前則抓前一天資料##################
         Today = datetime.datetime.now().strftime("%Y%m%d")
         year =  int(time.strftime("%Y"))
@@ -145,9 +143,7 @@ class GetData():
         print(Today)
         url = "http://www.twse.com.tw/ch/trading/fund/BFI82U/BFI82U_print.php?begin_date="+Today+"&report_type=day&language=ch&save=csv" 
         self.ThreeMenDollarResponse = urllib.request.urlopen(url)
-      #  CSVReader = csv.reader(io.TextIOWrapper(urllib.request.urlopen(url)))
- 
-    
+
     def FutureToday(self): #期貨 http://www.taifex.com.tw/chinese/3/7_12_8.asp
         
         TodayFuture={  #setting the post query data
@@ -178,10 +174,10 @@ class GetData():
             TodayFuture['sday'] = yesterday.strftime("%d")
             TodayFuture['eday'] = yesterday.strftime("%d")
             
-    #    if hour < 17:
-    #        yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
-    #        TodayFuture['sday'] = yesterday.strftime("%d")
-    #        TodayFuture['eday'] = yesterday.strftime("%d")
+        elif hour < 17:
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+            TodayFuture['sday'] = yesterday.strftime("%d")
+            TodayFuture['eday'] = yesterday.strftime("%d")
             
             
         FutureRequest= requests.post('http://www.taifex.com.tw/chinese/3/7_12_8dl.asp',data=TodayFuture,allow_redirects=False)
@@ -274,11 +270,9 @@ class GUI(GetData):
         self.LabelPower.grid(row=1,column=11)
         self.LabelHighSatisfy = Label()
         self.LabelHighSatisfy.grid(row=1,column=12)
-        self.LabelClose = Label()
-        
+        self.LabelClose = Label() 
         self.LabelClose.grid(row=3,column=10)
         
-
         self.test2 = StringVar()
         self.test1 = Label()
         self.test1.grid(row=10,column=10)
@@ -293,18 +287,12 @@ class GUI(GetData):
 
         self.ThreeMenDollar()
         self.PrintFeautre()
-        self.InTimeObject.GetInTimeStockInfo(2330)
+     #   self.InTimeObject.GetInTimeStockInfo(2330)
 ####################### initial interface #######################        
         self.interface.after(1000,self.PrintInTime)
         self.interface.mainloop()
 
-#    def abc(self):
-#        for a in range(0,3,1):            
-#            print(a)
-#            self.test2.set(a)
-#            self.test1["text"]=self.test2.get()
-#            self.test1.update()
-#            time.sleep(2)
+#
     def mmka(self):
         while True:
             self.InTimeObject.FutureInTime()
@@ -315,16 +303,14 @@ class GUI(GetData):
             self.showWeakStage.set(self.InTimeObject.MiddleStage-self.InTimeObject.WeakStage)       
             self.LowSatisfy.set(self.InTimeObject.MiddleStage-self.InTimeObject.PowerStage)
             self.showClosePrice.set(self.InTimeObject.FutureNowPrice)
-            
-            
+          
             self.LabelHighSatisfy["text"]=self.HighSatisfy.get()
             self.LabelPower["text"] = self.showPowerStage.get()
             self.LabelMiddle["text"]=self.showMiddleStage.get()  
             self.LabelWeak["text"]=self.showWeakStage.get()
             self.LabelLowSatisfy["text"]=self.LowSatisfy.get()
             self.LabelClose["text"]=self.showClosePrice.get()
-            
-            
+                    
             self.LabelHighSatisfy.update()
             self.LabelLowSatisfy.update()                             
             self.LabelMiddle.update()
@@ -336,15 +322,17 @@ class GUI(GetData):
     def PrintInTime(self):
         self.PrintFeautre_thread = threading.Thread(target=self.mmka)
         self.PrintFeautre_thread.start()  
-            
+     
     def tesfile(self,event):
             count =0 
             f = open("export.csv","r")
             for row in csv.reader(f):
-                print(row)
+               # print(row)
                 count+=1 
                 if count >=4 and (row[2]!='-' and float(row[2])<=self.TargetPERatio):
                         QueryPrice=Share(row[0]+'.TW')
+                      #  volumetemp =  self.InTimeObject.GetInTimeStockInfo(row[0])
+                #             print(volumetemp)
                         if QueryPrice.get_earnings_share()!=None and float(QueryPrice.get_earnings_share())>=self.TargetEPS and float: #float(QueryPrice.get_earnings_share())>=self.TargetEPS:
                             if float(QueryPrice.get_volume())>=self.TargetVolume and float(QueryPrice.get_price())<=self.TargetPrice:
                                 information = row[0] + row[1]+"\t" + QueryPrice.get_earnings_share() +" "+ QueryPrice.get_volume()+"   " + QueryPrice.get_price()
@@ -381,19 +369,16 @@ class GUI(GetData):
 
     def GetTextFromVolumeField(self,event):
         self.TargetVolume = float(self.inputVolumeField.get())
-   #     print(self.TargetVolume)
         
     def GetTextFromWannaPriceField(self,event):
         self.TargetPrice = float(self.inputWannaPriceField.get())
-  #      print(self.TargetPrice)
+
     def GetTextFromPREField(self,event):
         self.TargetPERatio = float(self.inputPREField.get())
- #       print(self.TargetPERatio)
+
     def GetTextFromEPSField(self,event):
         self.TargetEPS=float(self.inputEPSField.get())
-#        print(self.TargetEPS)
-    #    self.SearchPERatio()
-        
+      
     def OutputData(self,event):
         for x in range(self.AllData.__len__()):     #Output the outcome 
             print(self.AllData[x])
