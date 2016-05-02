@@ -41,10 +41,9 @@ class DataBase():
         ######################### if the point less or more 4points than previous data 
         for row in self.dbcommand.execute("SELECT * FROM Futures ORDER BY Time DESC LIMIT 10"):
      #       print(row)
-            if NowPrice - float(row[2]) > 2:   #### should be bottom 
+            if NowPrice - float(row[2]) > 4:   #### should be bottom 
                 if self.BuyInformation[0]==0:
-                    print("做多新倉")
-                    print(NowPrice)
+                    print("做多新倉 "+NowPrice.__str__()+" "+NowTime.__str__())
                     self.BuyInformation[0] = 1
                     self.BuyInformation[1] = NowPrice
                     self.BuyInformation[2] = "Positive"
@@ -53,10 +52,9 @@ class DataBase():
                     self.Record.append(NowPrice)
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
                     
-            elif NowPrice - float(row[2]) < -2:
+            elif NowPrice - float(row[2]) < -4:
                 if self.BuyInformation[0]==0:
-                    print("做空新倉")
-                    print(NowPrice)
+                    print("做空新倉 "+NowPrice.__str__()+" "+NowTime.__str__())
                     self.BuyInformation[0] = 1
                     self.BuyInformation[1] = NowPrice
                     self.BuyInformation[2] = "Negative"
@@ -72,11 +70,10 @@ class DataBase():
             ######################### 多單 #########################
             if self.BuyInformation[2]=="Positive":
                 if float(NowPrice) - float(self.BuyInformation[1]) > 15:
-                    self.Record.append("做多平倉")
+                    self.Record.append("做多大賺平倉")
                     self.Record.append(NowPrice)
                     self.ResetInfromation()
-                    print("做多平倉")
-                    print(NowPrice)
+                    print("做多大賺平倉" + NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
                 
                 elif float(NowPrice) - float(self.BuyInformation[1]) < 15 and float(NowPrice) - float(self.BuyInformation[1]) > 5:
@@ -85,8 +82,7 @@ class DataBase():
                         self.Record.append("做多平倉")
                         self.Record.append(NowPrice)
                         self.ResetInfromation()
-                        print("做多平倉")
-                        print(NowPrice)
+                        print("做多平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
                     else:
                         pass 
@@ -96,8 +92,7 @@ class DataBase():
                         self.Record.append("做多平倉")
                         self.Record.append(NowPrice)
                         self.ResetInfromation()
-                        print("做多平倉")
-                        print(NowPrice)
+                        print("做多平倉虧損 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
                     else:
                         pass 
@@ -108,8 +103,7 @@ class DataBase():
                     self.Record.append("做空平倉")
                     self.Record.append(NowPrice)
                     self.ResetInfromation()
-                    print("做空平倉1")
-                    print(NowPrice)
+                    print("做空平倉大賺 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
                 
                 elif float(NowPrice) - float(self.BuyInformation[1]) > -15 and float(NowPrice) - float(self.BuyInformation[1]) < -5:
@@ -118,8 +112,7 @@ class DataBase():
                         self.Record.append("做空平倉")
                         self.Record.append(NowPrice)
                         self.ResetInfromation()
-                        print("做空平倉2")
-                        print(NowPrice)
+                        print("做空平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
                     else:
                         pass 
@@ -129,8 +122,7 @@ class DataBase():
                         self.Record.append("做空平倉")
                         self.Record.append(NowPrice)
                         self.ResetInfromation()
-                        print("做空平倉3")
-                        print(NowPrice)
+                        print("做空平倉虧損"+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
                     else:
                         pass 
