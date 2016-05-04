@@ -141,8 +141,8 @@ class Futures(DataBase):
         self.MiddleStage=0
         self.WeakStage=0
         self.WeakSatisfy=0
-        self.TestCase()
-      #  self.GetInfo()
+      #  self.TestCase()
+        self.GetInfo()
     
     def TestCase(self):
         wb = load_workbook('20160429Detail.xlsx')
@@ -183,7 +183,6 @@ class Futures(DataBase):
             x = x+1
             self.Strategy(float(self.Futures['msgArray'][0]['z']))
             sleep(1)
-        
       #  for row in self.dbcommand.execute("SELECT Close FROM Futures"):
       #      if row[0]>8300:
       #          print(row)
