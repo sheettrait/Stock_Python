@@ -11,13 +11,14 @@ from time import sleep
 class DataBase():
     
     def __init__(self):
+        self.TodayDate = datetime.datetime.date(datetime.datetime.now()).__str__()+".db" 
         self.CreateDataBase()
         self.BuyInformation=[0,0,0,0] # [0] = flag, [1] = price ,[2] postitve or negative
         self.Record=[]
- 
+       
     def CreateDataBase(self):
-        if(os.path.isfile('Futures.db')==False):
-            self.connection = sqlite3.connect('Futures.db')
+        if(os.path.isfile(self.TodayDate)==False):
+            self.connection = sqlite3.connect(self.TodayDate)
             self.dbcommand = self.connection.cursor()
             self.dbcommand.execute("CREATE TABLE Futures(Date , Time , Close , High , Low)")
             self.connection.commit()      
@@ -26,7 +27,7 @@ class DataBase():
             self.resultcommand.execute("CREATE TABLE Result(Action , Price)")
             self.resultconnect.commit()
         else:
-            self.connection = sqlite3.connect('Futures.db')
+            self.connection = sqlite3.connect(self.TodayDate)
             self.dbcommand = self.connection.cursor()
             
             self.resultconnect = sqlite3.connect('result.db')
