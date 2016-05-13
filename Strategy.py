@@ -11,7 +11,8 @@ from time import sleep
 class DataBase():
     
     def __init__(self):
-        self.TodayDate = datetime.datetime.date(datetime.datetime.now()).__str__()+".db" 
+        self.TodayDate = datetime.datetime.date(datetime.datetime.now()).__str__()+"-Data.db" 
+        self.ResultToday = datetime.datetime.date(datetime.datetime.now()).__str__()+"-Result.db"
         self.CreateDataBase()
         self.BuyInformation=[0,0,0,0] # [0] = flag, [1] = price ,[2] postitve or negative
         self.Record=[]
@@ -22,7 +23,7 @@ class DataBase():
             self.dbcommand = self.connection.cursor()
             self.dbcommand.execute("CREATE TABLE Futures(Date , Time , Close , High , Low)")
             self.connection.commit()      
-            self.resultconnect = sqlite3.connect('result.db')
+            self.resultconnect = sqlite3.connect(self.ResultToday)
             self.resultcommand = self.resultconnect.cursor()
             self.resultcommand.execute("CREATE TABLE Result(Action , Price)")
             self.resultconnect.commit()
@@ -30,7 +31,7 @@ class DataBase():
             self.connection = sqlite3.connect(self.TodayDate)
             self.dbcommand = self.connection.cursor()
             
-            self.resultconnect = sqlite3.connect('result.db')
+            self.resultconnect = sqlite3.connect(self.ResultToday)
             self.resultcommand = self.resultconnect.cursor()
     
     def ResetInfromation(self):
@@ -52,7 +53,7 @@ class DataBase():
                     self.Record.append("做多新倉")
                     self.Record.append(NowPrice)
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
-                    
+                    self.resultconnect.commit()
             elif NowPrice - float(row[2]) < -4:
                 if self.BuyInformation[0]==0:
                     print("做空新倉 "+NowPrice.__str__()+" "+NowTime.__str__())
@@ -63,7 +64,7 @@ class DataBase():
                     self.Record.append("做空新倉")
                     self.Record.append(NowPrice)
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
-
+                    self.resultconnect.commit()
         ################################################################################
     
     def Process(self,NowPrice):
@@ -76,7 +77,7 @@ class DataBase():
                     self.ResetInfromation()
                     print("做多大賺平倉" + NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
-                
+                    self.resultconnect.commit()
                 elif float(NowPrice) - float(self.BuyInformation[1]) < 15 and float(NowPrice) - float(self.BuyInformation[1]) > 5:
                     NowTime = datetime.datetime.now()
                     if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=210):  
@@ -85,16 +86,18 @@ class DataBase():
                         self.ResetInfromation()
                         print("做多平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
+                        self.resultconnect.commit()
                     else:
                         pass 
-                elif float(NowPrice) - float(self.BuyInformation[1]) < 0:
+                elif float(NowPrice) - float(self.BuyInformation[1]) < -3:
                     NowTime = datetime.datetime.now()
-                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=60):  
+                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=90):  
                         self.Record.append("做多平倉")
                         self.Record.append(NowPrice)
                         self.ResetInfromation()
                         print("做多平倉虧損 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
+                        self.resultconnect.commit()
                     else:
                         pass 
                     
@@ -106,6 +109,7 @@ class DataBase():
                     self.ResetInfromation()
                     print("做空平倉大賺 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                     self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
+                    self.resultconnect.commit()
                 
                 elif float(NowPrice) - float(self.BuyInformation[1]) > -15 and float(NowPrice) - float(self.BuyInformation[1]) < -5:
                     NowTime = datetime.datetime.now()
@@ -115,16 +119,18 @@ class DataBase():
                         self.ResetInfromation()
                         print("做空平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
+                        self.resultconnect.commit()
                     else:
                         pass 
-                elif float(NowPrice) - float(self.BuyInformation[1]) > 0:
+                elif float(NowPrice) - float(self.BuyInformation[1]) > 3:
                     NowTime = datetime.datetime.now()
-                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=60):  
+                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=90):  
                         self.Record.append("做空平倉")
                         self.Record.append(NowPrice)
                         self.ResetInfromation()
                         print("做空平倉虧損"+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
+                        self.resultconnect.commit()
                     else:
                         pass 
                     
