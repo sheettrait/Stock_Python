@@ -3,6 +3,7 @@ import json
 import requests
 import sqlite3
 import os.path
+import os 
 import datetime
 from openpyxl import Workbook
 from openpyxl import load_workbook
@@ -25,18 +26,26 @@ class DataBase():
             self.connection.commit()      
             self.resultconnect = sqlite3.connect(self.ResultToday)
             self.resultcommand = self.resultconnect.cursor()
-            self.resultcommand.execute("CREATE TABLE Result(Action , Price)")
+            self.resultcommand.execute("CREATE TABLE Result(Action , Price , Share)")
             self.resultconnect.commit()
         else:
             self.connection = sqlite3.connect(self.TodayDate)
             self.dbcommand = self.connection.cursor()
-            
             self.resultconnect = sqlite3.connect(self.ResultToday)
             self.resultcommand = self.resultconnect.cursor()
     
     def ResetInfromation(self):
         for x in range(0,4,1):
             self.BuyInformation[x]=0
+    
+    def InsertResult(self,expression,finalprice,share):
+        self.resultcommand.execute("INSERT INTO Result VALUES (?,?,?)",(expression,finalprice,share))
+        self.resultconnect.commit()
+    
+    def exeBuy(self):
+        os.startfile("D:\\Futures\\test\\Buy\\setup.exe")
+    def exeSell(self):
+        os.startfile("D:\\Futures\\test\\Sell\\setup.exe")
     
     def BuyOrSell(self,NowPrice):
         NowTime = datetime.datetime.now()
@@ -50,10 +59,10 @@ class DataBase():
                     self.BuyInformation[1] = NowPrice
                     self.BuyInformation[2] = "Positive"
                     self.BuyInformation[3] = NowTime
-                    self.Record.append("做多新倉")
-                    self.Record.append(NowPrice)
-                    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
-                    self.resultconnect.commit()
+                    self.InsertResult("做多新倉",NowPrice.__str__(),"1")
+                    #self.exeBuy()
+                 #   self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
+                 #   self.resultconnect.commit()
             elif NowPrice - float(row[2]) < -4:
                 if self.BuyInformation[0]==0:
                     print("做空新倉 "+NowPrice.__str__()+" "+NowTime.__str__())
@@ -61,10 +70,10 @@ class DataBase():
                     self.BuyInformation[1] = NowPrice
                     self.BuyInformation[2] = "Negative"
                     self.BuyInformation[3] = NowTime
-                    self.Record.append("做空新倉")
-                    self.Record.append(NowPrice)
-                    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
-                    self.resultconnect.commit()
+                    self.InsertResult("做空新倉",NowPrice.__str__(),"1")
+                    #self.exeSell()
+                #    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
+                #    self.resultconnect.commit()
         ################################################################################
     
     def Process(self,NowPrice):
@@ -72,72 +81,71 @@ class DataBase():
             ######################### 多單 #########################
             if self.BuyInformation[2]=="Positive":
                 if float(NowPrice) - float(self.BuyInformation[1]) > 15:
-                    self.Record.append("做多大賺平倉")
-                    self.Record.append(NowPrice)
                     self.ResetInfromation()
                     print("做多大賺平倉" + NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
-                    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
-                    self.resultconnect.commit()
+                    self.InsertResult("做多平倉",NowPrice.__str__(),"0")
+                    #self.exeSell()
+                #    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
+                #    self.resultconnect.commit()
                 elif float(NowPrice) - float(self.BuyInformation[1]) < 15 and float(NowPrice) - float(self.BuyInformation[1]) > 5:
                     NowTime = datetime.datetime.now()
                     if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=210):  
-                        self.Record.append("做多平倉")
-                        self.Record.append(NowPrice)
                         self.ResetInfromation()
                         print("做多平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
-                        self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
-                        self.resultconnect.commit()
+                        self.InsertResult("做多平倉",NowPrice.__str__(),"0")
+                        #self.exeSell()
+                        #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
+                        #self.resultconnect.commit()
                     else:
                         pass 
                 elif float(NowPrice) - float(self.BuyInformation[1]) < -3:
                     NowTime = datetime.datetime.now()
                     if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=90):  
-                        self.Record.append("做多平倉")
-                        self.Record.append(NowPrice)
                         self.ResetInfromation()
                         print("做多平倉虧損 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
-                        self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
-                        self.resultconnect.commit()
+                        self.InsertResult("做多平倉",NowPrice.__str__(),"0")
+                        #self.exeSell()
+                        #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
+                        #self.resultconnect.commit()
                     else:
                         pass 
                     
             ######################### 空單 #########################        
             if self.BuyInformation[2]=="Negative":
                 if float(NowPrice) - float(self.BuyInformation[1]) < -15:
-                    self.Record.append("做空平倉")
-                    self.Record.append(NowPrice)
                     self.ResetInfromation()
                     print("做空平倉大賺 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
-                    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
-                    self.resultconnect.commit()
+                    self.InsertResult("做空平倉",NowPrice.__str__(),"0")
+                    #self.exeBuy()
+                    #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
+                    #self.resultconnect.commit()
                 
                 elif float(NowPrice) - float(self.BuyInformation[1]) > -15 and float(NowPrice) - float(self.BuyInformation[1]) < -5:
                     NowTime = datetime.datetime.now()
                     if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=210):  
-                        self.Record.append("做空平倉")
-                        self.Record.append(NowPrice)
                         self.ResetInfromation()
                         print("做空平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
-                        self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
-                        self.resultconnect.commit()
+                        self.InsertResult("做空平倉",NowPrice.__str__(),"0")
+                        #self.exeBuy()
+                     #   self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
+                     #   self.resultconnect.commit()
                     else:
                         pass 
                 elif float(NowPrice) - float(self.BuyInformation[1]) > 3:
                     NowTime = datetime.datetime.now()
                     if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=90):  
-                        self.Record.append("做空平倉")
-                        self.Record.append(NowPrice)
                         self.ResetInfromation()
                         print("做空平倉虧損"+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
-                        self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
-                        self.resultconnect.commit()
+                        self.InsertResult("做空平倉",NowPrice.__str__(),"0")
+                        #self.exeBuy()
+                        #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
+                        #self.resultconnect.commit()
                     else:
                         pass 
                     
     def Strategy(self,NowPrice):
         self.BuyOrSell(NowPrice)
         self.Process(NowPrice)
-        
         
 class Futures(DataBase):
     def __init__(self):
@@ -148,7 +156,6 @@ class Futures(DataBase):
         self.MiddleStage=0
         self.WeakStage=0
         self.WeakSatisfy=0
-      #  self.TestCase()
         self.GetInfo()
     
     def TestCase(self):
@@ -163,38 +170,35 @@ class Futures(DataBase):
                 self.Strategy(row[3].value)
                 self.dbcommand.execute("INSERT INTO Futures VALUES (?,?,?,?,?)",("20160429", row[0].value.__str__(), row[3].value.__str__() ,"8500" , "8300"))
                 x=x+1 
-        #        print(row[3].value)
-        
+                
+                
     def GetInfo(self):
         x=0
         while True :
-            self.url="http://mis.twse.com.tw/stock/data/futures_side.txt"   
-            self.Response = requests.get(self.url)
-            self.Futures=json.loads(self.Response.text)
-         #   print(self.Futures['msgArray'][0])
-            difference = float(self.Futures['msgArray'][0]['h'])-float(self.Futures['msgArray'][0]['l'])
-            self.MiddleStage = (float(self.Futures['msgArray'][0]['l'])+float(self.Futures['msgArray'][0]['h']))/2
-            self.PowerStage = float(self.Futures['msgArray'][0]['l']) + difference*1.382
-            self.PowerSatisfy = float(self.Futures['msgArray'][0]['l']) + difference*1.618
-            self.WeakStage = float(self.Futures['msgArray'][0]['h']) - difference*1.382
-            self.WeakSatisfy = float(self.Futures['msgArray'][0]['h']) - difference*1.618
-     #       print("====================")
-     #       print(self.PowerSatisfy)
-     #       print(self.PowerStage)
-     #       print(self.MiddleStage)
-     #       print(self.WeakStage)
-     #       print(self.WeakSatisfy)
-     
-            self.dbcommand.execute("INSERT INTO Futures VALUES (?,?,?,?,?)",(self.Futures['msgArray'][0]['d'],self.Futures['msgArray'][0]['t'],float(self.Futures['msgArray'][0]['z']),self.Futures['msgArray'][0]['h'],self.Futures['msgArray'][0]['l']))
-            self.connection.commit()
-            x = x+1
-            self.Strategy(float(self.Futures['msgArray'][0]['z']))
-            sleep(1)
-      #  for row in self.dbcommand.execute("SELECT Close FROM Futures"):
-      #      if row[0]>8300:
-      #          print(row)
-     #   print(self.dbcommand.execute("SELECT * FROM Futures").fetchall().__len__())
-        
-    #    print(self.dbcommand.execute("SELECT * FROM Futures").fetchall()[5][3])
+            try:
+                self.url="http://mis.twse.com.tw/stock/data/futures_side.txt"   
+                self.Response = requests.get(self.url)
+                self.Futures=json.loads(self.Response.text)
+             #   print(self.Futures['msgArray'][0])
+                self.dbcommand.execute("INSERT INTO Futures VALUES (?,?,?,?,?)",(self.Futures['msgArray'][0]['d'],self.Futures['msgArray'][0]['t'],float(self.Futures['msgArray'][0]['z']),self.Futures['msgArray'][0]['h'],self.Futures['msgArray'][0]['l']))
+                self.connection.commit()
+                x = x+1
+                self.Strategy(float(self.Futures['msgArray'][0]['z']))
+                sleep(1)
+                
+            except requests.exceptions:
+                print("Have connection error")
+                pass
+
 #b=DataBase()
 a = Futures()
+
+
+    #        difference = float(self.Futures['msgArray'][0]['h'])-float(self.Futures['msgArray'][0]['l'])
+    #        self.MiddleStage = (float(self.Futures['msgArray'][0]['l'])+float(self.Futures['msgArray'][0]['h']))/2
+    #        self.PowerStage = float(self.Futures['msgArray'][0]['l']) + difference*1.382
+    #        self.PowerSatisfy = float(self.Futures['msgArray'][0]['l']) + difference*1.618
+    #        self.WeakStage = float(self.Futures['msgArray'][0]['h']) - difference*1.382
+    #        self.WeakSatisfy = float(self.Futures['msgArray'][0]['h']) - difference*1.618
+
+     

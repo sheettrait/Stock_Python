@@ -17,6 +17,3 @@ count = 0
 
 for line in command.execute("SELECT * FROM Result"):
     print(line)
-    count = count+1
-    if count % 2 ==0 and count !=0:
-        
