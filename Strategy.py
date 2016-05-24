@@ -43,9 +43,10 @@ class DataBase():
         self.resultconnect.commit()
     
     def exeBuy(self):
-        os.startfile("D:\\Futures\\test\\Buy\\setup.exe")
+        os.startfile("D:\\Futures\\Buy\\FutureBuy.application")
+        
     def exeSell(self):
-        os.startfile("D:\\Futures\\test\\Sell\\setup.exe")
+        os.startfile("D:\\Futures\\Sell\\ConsoleApplication1.application")
     
     def BuyOrSell(self,NowPrice):
         NowTime = datetime.datetime.now()
@@ -89,7 +90,7 @@ class DataBase():
                 #    self.resultconnect.commit()
                 elif float(NowPrice) - float(self.BuyInformation[1]) < 15 and float(NowPrice) - float(self.BuyInformation[1]) > 5:
                     NowTime = datetime.datetime.now()
-                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=210):  
+                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=90):  
                         self.ResetInfromation()
                         print("做多平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.InsertResult("做多平倉",NowPrice.__str__(),"0")
@@ -148,14 +149,9 @@ class DataBase():
         self.Process(NowPrice)
         
 class Futures(DataBase):
+    
     def __init__(self):
-   #     self.initdatabase()
         super().__init__()
-        self.PowerStage=0
-        self.PowerSatisfy=0
-        self.MiddleStage=0
-        self.WeakStage=0
-        self.WeakSatisfy=0
         self.GetInfo()
     
     def TestCase(self):
@@ -170,8 +166,7 @@ class Futures(DataBase):
                 self.Strategy(row[3].value)
                 self.dbcommand.execute("INSERT INTO Futures VALUES (?,?,?,?,?)",("20160429", row[0].value.__str__(), row[3].value.__str__() ,"8500" , "8300"))
                 x=x+1 
-                
-                
+                  
     def GetInfo(self):
         x=0
         while True :
@@ -179,7 +174,6 @@ class Futures(DataBase):
                 self.url="http://mis.twse.com.tw/stock/data/futures_side.txt"   
                 self.Response = requests.get(self.url)
                 self.Futures=json.loads(self.Response.text)
-             #   print(self.Futures['msgArray'][0])
                 self.dbcommand.execute("INSERT INTO Futures VALUES (?,?,?,?,?)",(self.Futures['msgArray'][0]['d'],self.Futures['msgArray'][0]['t'],float(self.Futures['msgArray'][0]['z']),self.Futures['msgArray'][0]['h'],self.Futures['msgArray'][0]['l']))
                 self.connection.commit()
                 x = x+1
@@ -194,11 +188,3 @@ class Futures(DataBase):
 a = Futures()
 
 
-    #        difference = float(self.Futures['msgArray'][0]['h'])-float(self.Futures['msgArray'][0]['l'])
-    #        self.MiddleStage = (float(self.Futures['msgArray'][0]['l'])+float(self.Futures['msgArray'][0]['h']))/2
-    #        self.PowerStage = float(self.Futures['msgArray'][0]['l']) + difference*1.382
-    #        self.PowerSatisfy = float(self.Futures['msgArray'][0]['l']) + difference*1.618
-    #        self.WeakStage = float(self.Futures['msgArray'][0]['h']) - difference*1.382
-    #        self.WeakSatisfy = float(self.Futures['msgArray'][0]['h']) - difference*1.618
-
-     
