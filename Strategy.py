@@ -123,7 +123,7 @@ class DataBase():
                 
                 elif float(NowPrice) - float(self.BuyInformation[1]) > -15 and float(NowPrice) - float(self.BuyInformation[1]) < -5:
                     NowTime = datetime.datetime.now()
-                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=210):  
+                    if NowTime - self.BuyInformation[3] > datetime.timedelta(seconds=90):  
                         self.ResetInfromation()
                         print("做空平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.InsertResult("做空平倉",NowPrice.__str__(),"0")
