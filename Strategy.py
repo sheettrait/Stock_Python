@@ -61,7 +61,7 @@ class DataBase():
                     self.BuyInformation[2] = "Positive"
                     self.BuyInformation[3] = NowTime
                     self.InsertResult("做多新倉",NowPrice.__str__(),"1")
-                    #self.exeBuy()
+                    self.exeBuy()
                  #   self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
                  #   self.resultconnect.commit()
             elif NowPrice - float(row[2]) < -4:
@@ -72,7 +72,7 @@ class DataBase():
                     self.BuyInformation[2] = "Negative"
                     self.BuyInformation[3] = NowTime
                     self.InsertResult("做空新倉",NowPrice.__str__(),"1")
-                    #self.exeSell()
+                    self.exeSell()
                 #    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多新倉",NowPrice.__str__()))
                 #    self.resultconnect.commit()
         ################################################################################
@@ -85,7 +85,7 @@ class DataBase():
                     self.ResetInfromation()
                     print("做多大賺平倉" + NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                     self.InsertResult("做多平倉",NowPrice.__str__(),"0")
-                    #self.exeSell()
+                    self.exeSell()
                 #    self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
                 #    self.resultconnect.commit()
                 elif float(NowPrice) - float(self.BuyInformation[1]) < 15 and float(NowPrice) - float(self.BuyInformation[1]) > 5:
@@ -94,7 +94,7 @@ class DataBase():
                         self.ResetInfromation()
                         print("做多平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.InsertResult("做多平倉",NowPrice.__str__(),"0")
-                        #self.exeSell()
+                        self.exeSell()
                         #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
                         #self.resultconnect.commit()
                     else:
@@ -105,7 +105,7 @@ class DataBase():
                         self.ResetInfromation()
                         print("做多平倉虧損 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.InsertResult("做多平倉",NowPrice.__str__(),"0")
-                        #self.exeSell()
+                        self.exeSell()
                         #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做多平倉",NowPrice.__str__()))
                         #self.resultconnect.commit()
                     else:
@@ -117,7 +117,7 @@ class DataBase():
                     self.ResetInfromation()
                     print("做空平倉大賺 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                     self.InsertResult("做空平倉",NowPrice.__str__(),"0")
-                    #self.exeBuy()
+                    self.exeBuy()
                     #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
                     #self.resultconnect.commit()
                 
@@ -127,7 +127,7 @@ class DataBase():
                         self.ResetInfromation()
                         print("做空平倉 "+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.InsertResult("做空平倉",NowPrice.__str__(),"0")
-                        #self.exeBuy()
+                        self.exeBuy()
                      #   self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
                      #   self.resultconnect.commit()
                     else:
@@ -138,7 +138,7 @@ class DataBase():
                         self.ResetInfromation()
                         print("做空平倉虧損"+ NowPrice.__str__()+" "+self.BuyInformation[3].__str__())
                         self.InsertResult("做空平倉",NowPrice.__str__(),"0")
-                        #self.exeBuy()
+                        self.exeBuy()
                         #self.resultcommand.execute("INSERT INTO Result VALUES (?,?)",("做空平倉",NowPrice.__str__()))
                         #self.resultconnect.commit()
                     else:

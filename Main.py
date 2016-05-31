@@ -14,6 +14,8 @@ import json
 import re
 import codecs
 import base64
+import openpyxl 
+from openpyxl import Workbook
 from shutil import copyfileobj
 from bs4 import BeautifulSoup
 from yahoo_finance import Share
@@ -87,7 +89,41 @@ class GetData():
         f = open('export.csv','wb')
         copyfileobj(res2.raw,f)
         f.close()
-        
+        self.SelectStock()
+    def SelectStock(self):
+        wb = Workbook()
+        ws = wb.active
+        with open('export.csv',newline='') as f:
+            reader = csv.reader(f)
+            index = 2
+            title = ["代號","名稱","股價","本益比","EPS"]
+            for x in range(0,5,1):
+                ws.cell(row=1,column=x+1,value=title[x])
+            for row in reader:
+                if row!=[]:
+                    try:
+                        if int(row[0]) < 10000:
+                        #    print(row[2])
+                            if "-" not in (row[2]) and float(row[2]) < 20:
+                             #   print(row)
+                                Query = Share(row[0]+'.TW')
+                                #print(float(Query.get_earnings_share()))     
+                                #print(float(Query.get_open()))
+                                #print("******************")
+                                if float(Query.get_open()) >= 20 and float(Query.get_open()) <= 90 and float(Query.get_earnings_share())>1.2:
+                                    print(row)
+                                    ws.cell(row=index , column=1 , value = row[0])
+                                    ws.cell(row=index , column=2 , value = row[1])
+                                    ws.cell(row=index , column=3 , value = Query.get_open())
+                                    ws.cell(row=index , column=4 , value = row[2])
+                                    ws.cell(row=index , column=5 , value = Query.get_earnings_share())
+                                    index = index + 1
+                
+                                    
+                    except:
+                        pass    
+            wb.save("Final.xlsx")        
+                    
     def SearchPERatio(self):
         for x in range(8,1503,5):
        # for x in range(8,self.soup.select('.basic2').__len__(),5):
@@ -185,6 +221,9 @@ class GetData():
         RealCSVFile = requests.get(URLRedirect)
         print(RealCSVFile.url)
         self.TodayFutureResponse = urllib.request.urlopen(RealCSVFile.url)
+
+    
+
 
 class GUI(GetData):
     
@@ -390,5 +429,6 @@ class GUI(GetData):
                self.temp.grid(row=5+x,column=y)
 
 
-b = GUI()
+#b = GUI()
 
+c = GetData()
